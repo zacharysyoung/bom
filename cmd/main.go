@@ -34,8 +34,8 @@ func main() {
 	w.Flush()
 
 	// Output:
-	// utf8.txt             Unkown
+	// utf8.txt             Unknown
 	// utf16lebom.txt       UTF16LE
 	// utf32bebom.txt       UTF32BE
-	// /usr/share/dict/web2 Unkown
+	// /usr/share/dict/web2 Unknown
 }
