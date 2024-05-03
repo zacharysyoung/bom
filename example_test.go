@@ -1,44 +1,78 @@
 package bomsniffer
 
 import (
-	"encoding/csv"
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
+
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
-// Take the canonical example from package encoding/csv, prepend in
-// with a UTF-8-encoded BOM, wrap it with a sniffing Reader, and pass
-// that to csv.NewReader.
+// Create a sniffing Reader around bytes with a UTF-8BOM prefix
+// and hand it off to bufio.NewScanner.
 //
-// Making examples with a BOM is difficult because Go source cannot
-// contain a BOM, not even the Output: comment, so this example
-// discards the first record which actually contains the BOM.
+// Since Go source cannot contain a BOM, this example skips the
+// first three bytes that are a UTF-8-encode BOM in the first
+// line; the following lines don't need any special processing.
 func ExampleReader() {
-	in := "\uFEFF" + `first_name,last_name,username
-"Rob","Pike",rob
-Ken,Thompson,ken
-"Robert","Griesemer","gri"
+	in := "\uFEFF" + `line 1
+line 2
+line 3
 `
+
 	sniffer := NewReader(strings.NewReader(in))
-	r := csv.NewReader(sniffer)
+	scanner := bufio.NewScanner(sniffer)
 
-	_, _ = r.Read() // discard first record (see description above)
+	scanner.Scan()
+	fmt.Println(scanner.Text()[3:]) // discard BOM bytes
 
-	for {
-		record, err := r.Read()
-		if err == io.EOF {
-			break
-		}
-		fmt.Println(record)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
 	}
 
-	fmt.Println("\nCSV has BOM", sniffer.BOM())
+	fmt.Println("\nText has BOM", sniffer.BOM())
 
 	// Output:
-	// [Rob Pike rob]
-	// [Ken Thompson ken]
-	// [Robert Griesemer gri]
+	// line 1
+	// line 2
+	// line 3
 	//
-	// CSV has BOM UTF8
+	// Text has BOM UTF-8
+}
+
+// Like the previous example, but use a [golang.org/x/text/transform.Reader]
+// that decodes UTF-8-encoded bytes with a BOM prefix to UTF-8
+// bytes without a BOM.  Then create a sniffing Reader and Scanner
+// to print the lines and assert the BOM was not detected.
+func ExampleReader_transformer() {
+	in := "\uFEFF" + `line 1
+line 2
+line 3
+`
+
+	r := transform.NewReader(
+		strings.NewReader(in),
+		unicode.UTF8BOM.NewDecoder())
+
+	buf := &bytes.Buffer{}
+
+	io.Copy(buf, r)
+
+	sniffer := NewReader(buf)
+	scanner := bufio.NewScanner(sniffer)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+	}
+
+	fmt.Println("\nText has BOM", sniffer.BOM())
+
+	// Output:
+	// line 1
+	// line 2
+	// line 3
+	//
+	// Text has BOM Unknown
 }

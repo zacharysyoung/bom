@@ -4,6 +4,9 @@
 // Well-assuming in that it has only been tested with in-memory
 // Readers, and a few times on disk—so, maybe insert "toy" into
 // the above description as well.
+//
+// To remove a BOM, use a golang.org/text/transformer with the
+// specific BOM-input encoding and the desired output encoding.
 package bomsniffer
 
 import (
@@ -29,17 +32,17 @@ const (
 func (bom BOM) String() string {
 	switch bom {
 	case Unknown:
-		return "Unkown"
+		return "Unknown"
 	case UTF8:
-		return "UTF8"
+		return "UTF-8"
 	case UTF16BE:
-		return "UTF16BE"
+		return "UTF-16BE"
 	case UTF16LE:
-		return "UTF16LE"
+		return "UTF-16LE"
 	case UTF32BE:
-		return "UTF32BE"
+		return "UTF-32BE"
 	case UTF32LE:
-		return "UTF32LE"
+		return "UTF-32LE"
 	default:
 		panic(fmt.Errorf("unexpected BOM value %d", bom))
 	}
