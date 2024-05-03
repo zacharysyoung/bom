@@ -1,0 +1,3 @@
+It’s important to state right up front that a string holds *arbitrary* bytes.
+
+- Pike, Rob. “Strings, Bytes, Runes and Characters in Go.” The Go Blog, October 23, 2013. https://go.dev/blog/strings.
